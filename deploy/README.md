@@ -53,26 +53,32 @@ ssh eztrove-vps 'cd /opt/tallytrove && ./deploy/deploy.sh'
 
 `deploy.sh` does: `git pull origin test` → `docker compose up -d --build` → smoke-test each port.
 
-## Caveat: the Scrapfly scrapers sibling repo
+## The Scrapfly scrapers sibling repo
 
-The `backend` service in `docker-compose.yml` mounts a sibling repo:
+The `backend` service mounts a separate repo (`scrapfly-scrapers-2026`) at `/scrapers`.
+The host path is env-driven via `SCRAPERS_HOST_PATH` — set it to an absolute path
+on the VPS:
 
-```yaml
-- ../../scrapfly-scrapers-2026:/scrapers:ro
+```bash
+# 1. Clone the scrapers repo to the canonical VPS location
+cd /opt
+git clone https://github.com/basharathussain/scrapfly-scrapers-2026.git
+
+# 2. Point the .env at it (the .env.example has this commented out — uncomment)
+echo "SCRAPERS_HOST_PATH=/opt/scrapfly-scrapers-2026" >> /opt/tallytrove/.env
+
+# 3. Redeploy
+cd /opt/tallytrove && ./deploy/deploy.sh
 ```
 
-This is a separate repo (`scrapfly-scrapers-2026`) that the indexer reads when you run
-`make index`. **It is not cloned on the VPS by default**, so:
+Without this:
+- Docker will fail to start the backend (missing mount path).
 
-- The storefront, admin, and most of the backend still work without it (you can sign up, log in, browse — there'll just be no products until you index).
-- If you want live indexing on the VPS, clone the scrapers repo next to `/opt/tallytrove`:
-  ```bash
-  cd /opt && git clone <scrapers-repo-url> scrapfly-scrapers-2026
-  # then redeploy: cd /opt/tallytrove && ./deploy/deploy.sh
-  ```
-- If Docker complains about the missing mount path, edit `docker-compose.yml` on the
-  VPS to remove the `- ../../scrapfly-scrapers-2026:/scrapers:ro` line, or replace
-  it with an empty bind: `- /tmp:/scrapers:ro`.
+If you want to skip indexing entirely (catalog stays empty — storefront/admin/auth still work):
+```bash
+echo "SCRAPERS_HOST_PATH=/tmp" >> /opt/tallytrove/.env
+```
+Pointing the mount at `/tmp` satisfies the bind requirement; the backend just won't find scrapers.
 
 ## What's different from the `development` branch (localhost)
 

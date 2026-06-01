@@ -35,10 +35,9 @@ services:
     volumes:
       - ./backend:/app
       # scrapfly-scrapers-2026 is a sibling project used by `make index`.
-      # On the VPS this sibling repo is NOT cloned by default — see deploy/README.md
-      # if you want catalog indexing to work. Without it the storefront still loads,
-      # search results are just empty until the indexer runs.
-      - ../../scrapfly-scrapers-2026:/scrapers:ro
+      # Path is env-driven so localhost (relative sibling) and VPS (absolute path)
+      # both work — see deploy/README.md.
+      - ${SCRAPERS_HOST_PATH:-../../scrapfly-scrapers-2026}:/scrapers:ro
 
   storefront:
     build: ./storefront
