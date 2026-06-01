@@ -1,3 +1,5 @@
+name: tallytrove
+
 services:
 
   db:
@@ -10,6 +12,7 @@ services:
       POSTGRES_PASSWORD: tallytrove
     volumes:
       - db_data:/var/lib/postgresql/data
+    # VPS: db is internal-only (no public port binding).
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U tallytrove"]
       interval: 5s
@@ -27,8 +30,14 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    ports:
+      - "12097:8000"      # API direct access for testing
     volumes:
       - ./backend:/app
+      # scrapfly-scrapers-2026 is a sibling project used by `make index`.
+      # On the VPS this sibling repo is NOT cloned by default — see deploy/README.md
+      # if you want catalog indexing to work. Without it the storefront still loads,
+      # search results are just empty until the indexer runs.
       - ../../scrapfly-scrapers-2026:/scrapers:ro
 
   storefront:
@@ -36,7 +45,7 @@ services:
     container_name: tallytrove-storefront
     restart: unless-stopped
     ports:
-      - "9400:80"
+      - "12095:80"        # Customer-facing entry
     depends_on:
       - backend
 
@@ -45,7 +54,7 @@ services:
     container_name: tallytrove-admin
     restart: unless-stopped
     ports:
-      - "9401:80"
+      - "12096:80"        # Back-office
     depends_on:
       - backend
 
