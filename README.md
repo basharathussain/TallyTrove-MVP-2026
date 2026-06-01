@@ -27,10 +27,31 @@ make open                  # opens storefront + admin in browser
 
 ## URLs
 
+> **Note on ports:** the `test` branch uses VPS ports (`12095` storefront, `12096` admin, `12097` backend).
+> The `main` and `development` branches use the original localhost ports (`9400` / `9401`).
+> Numbers below assume the branch you've checked out.
+
+### Localhost (main / development branches)
+
 | Surface | URL | Credentials |
 |---|---|---|
 | **Storefront** | http://localhost:9400 | demo@tallytrove.com / demo123 |
 | **Admin** | http://localhost:9401 | admin@tallytrove.com / changeme123 |
+
+### Test server (test branch deployed to staging VPS)
+
+| Surface | URL | Credentials |
+|---|---|---|
+| **Storefront** | http://109.199.121.116:12095 | demo@tallytrove.com / demo123 |
+| **Admin** | http://109.199.121.116:12096 | admin@tallytrove.com / changeme123 |
+| **API docs** | http://109.199.121.116:12097/docs | — |
+
+Deploy workflow (from your Mac, after `git push origin test`):
+```bash
+ssh eztrove-vps 'cd /opt/tallytrove && ./deploy/deploy.sh'
+```
+
+Full VPS setup details: see [`deploy/README.md`](./deploy/README.md).
 
 ---
 
