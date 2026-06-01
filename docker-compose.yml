@@ -1,0 +1,53 @@
+services:
+
+  db:
+    image: postgres:15-alpine
+    container_name: tallytrove-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: tallytrove
+      POSTGRES_USER: tallytrove
+      POSTGRES_PASSWORD: tallytrove
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tallytrove"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    container_name: tallytrove-backend
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://tallytrove:tallytrove@db:5432/tallytrove
+      - SCRAPERS_ROOT=/scrapers
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - ../../scrapfly-scrapers-2026:/scrapers:ro
+
+  storefront:
+    build: ./storefront
+    container_name: tallytrove-storefront
+    restart: unless-stopped
+    ports:
+      - "9400:80"
+    depends_on:
+      - backend
+
+  admin:
+    build: ./admin
+    container_name: tallytrove-admin
+    restart: unless-stopped
+    ports:
+      - "9401:80"
+    depends_on:
+      - backend
+
+volumes:
+  db_data:

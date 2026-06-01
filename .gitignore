@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+.venv/
+venv/
+.coverage
+htmlcov/
+
+# Node / Vite
+node_modules/
+dist/
+.vite/
+*.log
+
+# Env (keep .env.example, ignore real .env)
+.env
+.env.local
+.env.*.local
+
+# Docker volumes (none in repo, but defensive)
+db_data/
+
+# OS / IDE
+.DS_Store
+.vscode/
+.idea/
+
+# Build artifacts
+*.tsbuildinfo
+out-tsc/
